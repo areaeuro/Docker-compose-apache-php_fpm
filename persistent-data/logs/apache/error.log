@@ -1,0 +1,4 @@
+[Mon May 06 00:01:36.011742 2019] [core:info] [pid 10:tid 140633335396096] [client 192.168.160.2:36424] AH00128: File does not exist: /usr/local/apache2/favicon.ico, referer: http://local.area-europa.net/
+[Mon May 06 00:47:12.333357 2019] [core:info] [pid 9:tid 140101795796736] [client 192.168.96.3:42322] AH00128: File does not exist: /usr/local/apache2/favicon.ico, referer: http://local.area-europa.net/bad.php
+[Mon May 06 00:51:04.282245 2019] [proxy_fcgi:error] [pid 8:tid 140101829367552] [client 192.168.96.3:42352] AH01071: Got error 'PHP message: This will generate an error'
+[Mon May 06 00:55:48.341973 2019] [proxy_fcgi:error] [pid 8:tid 140101795796736] [client 192.168.96.3:42424] AH01071: Got error 'PHP message: PHP Parse error:  syntax error, unexpected end of file, expecting ',' or ';' in /var/www/html/bad.php on line 5'
