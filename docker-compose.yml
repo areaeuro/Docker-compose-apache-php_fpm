@@ -1,48 +1,76 @@
-apache:
-    build: apache
-    restart: always
-    volumes:
-        - /var/www:/var/www
-    ports:
-        - 90:80
-    links:
-        - php:php
-    environment:
-        - VIRTUALHOST=puzzle3d.dev
-
-
-nginx:
-    build: nginx
-    restart: always
-    volumes:
-        - /var/www:/var/www
-    ports:
-        - 80:80
-    links:
-        - php:php
-
-php:
-    build: php-fpm
-    restart: always
-    volumes:
-        - /var/www:/var/www
-    ports:
-        - 9000:9000
-    links :
-        - db:db
-
-db:
-    image: mysql
-    restart: always
-    volumes:
-        - /var/mysql:/var/mysql
-    environment:
-        - MYSQL_ROOT_PASSWORD=root
+version: '2'
+services:
+    nginx-proxy:
+        image: jwilder/nginx-proxy
+        container_name: nginx-proxy
+        ports:
+         - "80:80"
+         - "443:443"
+        volumes:
+         - /var/run/docker.sock:/tmp/docker.sock:ro
+         - ./persistent-data/build/nginx-proxy/conf.d/extra.conf:/etc/nginx/conf.d/extras.conf
+        networks:
+        - proxy-net
+        restart: always
     
-dockerUi:
-    image: dockerui/dockerui
-    restart: always
-    volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-        - 5000:9000
+    apache:
+        build: ./persistent-data/build/apache
+        container_name: apache
+        volumes:
+         - ./persistent-data/app/app1:/var/www/html
+         - ./persistent-data/config/apache/conf:/usr/local/apache2/conf
+         - ./persistent-data/logs/apache:/var/logs/apache
+        expose:
+         - 80
+        environment:
+         - VIRTUAL_HOST=local.area-europa.net
+         - TIMEZONE=Europe/Madrid
+         - APACHE_ROOT_DIR=/usr/local/apache2
+         - APACHE_HTDOCS_DIR=/var/www/html
+         - APACHE_LOG_DIR=/var/logs/apache
+         - PHP_APP_DIR=/var/www/html
+         - PHP_PORT=9000
+         - PHP_CONTAINER_NAME=php
+        networks:
+         - proxy-net
+         - php-net
+        restart: always
+
+    php:
+        build: ./persistent-data/build/php-fpm
+        container_name: php
+        volumes:
+         - ./persistent-data/app/app1:/var/www/html
+         - ./persistent-data/config/php/www.conf:/etc/php/fpm/pool.d/www.conf
+         - ./persistent-data/config/php/30-custom.ini:/usr/local/etc/php/conf.d/30-custom.ini
+         - ./persistent-data/logs/php-fpm:/var/logs/php-fpm
+        environment:
+         - TIMEZONE=Europe/Madrid
+         - PHP_APP_DIR=/var/www/html
+         - PHP_PORT=9000
+         - PHP_CONTAINER_NAME=php
+         - PHP_LOG_DIR=/var/logs/php-fpm
+        expose:
+         - 9000
+        networks:
+         - db-net
+         - php-net
+        restart: always
+
+    # db:
+    #     image: mysql
+    #     container_name: db
+    #     volumes:
+    #      - /var/mysql:/var/mysql
+    #     environment:
+    #      - MYSQL_ROOT_PASSWORD=root
+    #      - TIMEZONE=Europe/Madrid
+    #     networks:
+    #      - db-net
+    #      - php-net
+    #     restart: always
+
+networks:
+  db-net:
+  proxy-net:
+  php-net:
